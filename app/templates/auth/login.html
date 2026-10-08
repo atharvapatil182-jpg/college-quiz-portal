@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | K.K. Wagh Quiz Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #e1f5fe, #b3e5fc, #e1f5fe);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(41,182,246,0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(79,195,247,0.2) 0%, transparent 50%);
+            animation: bgShift 6s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes bgShift {
+            0%   { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Floating shapes */
+        .shape {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: floatShape linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatShape {
+            0%   { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .left-content {
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .college-logo {
+            height: 110px;
+            width: 110px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 20px 60px rgba(41,182,246,0.4);
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-15px); }
+        }
+
+        .college-name {
+            color: #0288d1;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .portal-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0288d1, #29b6f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .portal-subtitle {
+            color: #5c9bd6;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .feature-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            color: #1565c0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(41,182,246,0.1);
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 480px;
+            min-height: 100vh;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 45px;
+            box-shadow: -20px 0 60px rgba(41,182,246,0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-form-container { width: 100%; }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0d47a1;
+            margin-bottom: 5px;
+        }
+
+        .login-subtitle {
+            color: #5c9bd6;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        /* Google Button */
+        .btn-google {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            color: #444;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            text-decoration: none;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-google:hover {
+            border-color: #29b6f6;
+            box-shadow: 0 4px 20px rgba(41,182,246,0.2);
+            transform: translateY(-2px);
+            color: #444;
+        }
+
+        .btn-google img {
+            width: 22px;
+            height: 22px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-label-custom {
+            font-weight: 600;
+            color: #0d47a1;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid #e8f4fd;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background: #f8fbff;
+            color: #0d47a1;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #29b6f6;
+            box-shadow: 0 0 0 4px rgba(41,182,246,0.1);
+            background: white;
+        }
+
+        .form-input::placeholder { color: #aac4dd; }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #29b6f6, #0288d1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(41,182,246,0.4);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #5c9bd6;
+            font-size: 0.9rem;
+        }
+
+        .signup-link a {
+            color: #0288d1;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover { text-decoration: underline; }
+
+        .error-text {
+            color: #f44336;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .flash-msg {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .flash-danger {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .flash-success {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .flash-info {
+            background: #e3f2fd;
+            border: 1px solid #b3e5fc;
+            color: #0288d1;
+        }
+
+        .admin-hint {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #f0f9ff;
+            border-radius: 10px;
+            border: 1px solid #b3e5fc;
+        }
+
+        .admin-hint small { color: #0288d1; font-size: 0.8rem; }
+
+        @media (max-width: 768px) {
+            .left-panel { display: none; }
+            .right-panel { width: 100%; padding: 40px 25px; }
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+        <div class="left-content">
+
+            <!-- College Logo -->
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="K.K. Wagh Logo"
+                 class="college-logo">
+
+            <!-- College Name -->
+            <div class="college-name">
+                K.K. Wagh Polytechnic, Nashik
+            </div>
+
+            <!-- Portal Title -->
+            <h1 class="portal-title">Quiz Portal</h1>
+
+            <p class="portal-subtitle">
+                Your college's smart online quiz platform.<br>
+                Test knowledge. Track progress. Excel.
+            </p>
+
+            <!-- Features -->
+            <ul class="feature-list">
+                <li>
+                    <div class="feature-icon"
+                         style="background:rgba(41,182,246,0.15);">
+                        <i class="fas fa-clock" style="color:#0288d1;"></i>
+                    </div>
+                    Timed quizzes with auto-submit
+                </li>
+                <li>
+                    <div class="feature-icon"
+                         style="background:rgba(0,200,81,0.15);">
+                        <i class="fas fa-chart-bar" style="color:#00c851;"></i>
+                    </div>
+                    Instant results and analytics
+                </li>
+                <li>
+                    <div class="feature-icon"
+                         style="background:rgba(255,215,0,0.15);">
+                        <i class="fas fa-trophy" style="color:#ffa000;"></i>
+                    </div>
+                    Branch-wise leaderboard
+                </li>
+                <li>
+                    <div class="feature-icon"
+                         style="background:rgba(123,47,255,0.15);">
+                        <i class="fas fa-shield-alt" style="color:#7b2fff;"></i>
+                    </div>
+                    Secure and reliable platform
+                </li>
+            </ul>
+
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <div class="login-form-container">
+
+            <h2 class="login-title">Welcome back! 👋</h2>
+            <p class="login-subtitle">
+                Sign in to your K.K. Wagh Quiz account
+            </p>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-msg flash-{{ category }}">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Google Style Button -->
+            <a href="#" class="btn-google"
+               onclick="alert('Google login requires live deployment. Please use email login below!'); return false;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                     alt="Google">
+                Continue with Google
+            </a>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>or sign in with email</span>
+            </div>
+
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    <label class="form-label-custom">
+                        <i class="fas fa-envelope me-1"></i>
+                        Email Address
+                    </label>
+                    <input type="email"
+                           name="email"
+                           class="form-input"
+                           placeholder="Enter your email"
+                           value="{{ form.email.data or '' }}">
+                    {% if form.email.errors %}
+                        <div class="error-text">
+                            {{ form.email.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-custom">
+                        <i class="fas fa-lock me-1"></i>
+                        Password
+                    </label>
+                    <input type="password"
+                           name="password"
+                           class="form-input"
+                           placeholder="Enter your password">
+                    {% if form.password.errors %}
+                        <div class="error-text">
+                            {{ form.password.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-login">
+    <i class="fas fa-sign-in-alt me-2"></i>
+    Sign In to Portal
+</button>
+
+<div style="text-align:right; margin-top:12px;">
+    <a href="{{ url_for('auth.forgot_password') }}"
+       style="color:#0288d1; font-size:0.85rem;
+              text-decoration:none; font-weight:500;">
+        <i class="fas fa-question-circle me-1"></i>
+        Forgot Password?
+    </a>
+</div>
+             </form>
+
+            <!-- Signup Link -->
+            <div class="signup-link">
+                New student?
+                <a href="{{ url_for('auth.signup') }}">
+                    Register here
+                </a>
+            </div>
+
+</body>
+</html>

@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}Add Questions | {{ quiz.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-question-circle me-2 text-primary"></i>
+            Add Questions
+        </h2>
+        <p class="text-muted mb-0">
+            Quiz: <strong>{{ quiz.title }}</strong> |
+            Branch: <strong>{{ quiz.branch.name }}</strong> |
+            Duration: <strong>{{ quiz.duration_minutes }} mins</strong>
+        </p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-check me-2"></i>Done Adding Questions
+    </a>
+</div>
+
+<div class="row">
+
+    <!-- ===== LEFT: Add Question Form ===== -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>Add New Question
+                </h5>
+            </div>
+            <div class="card-body p-4">
+
+                <form method="POST"
+                      action="{{ url_for('admin.add_questions', quiz_id=quiz.id) }}">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Question Text -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Question</label>
+                        {{ form.question_text(class="form-control",
+                                              rows=3,
+                                              placeholder="Enter your question here...") }}
+                        {% if form.question_text.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.question_text.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Option A -->
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-primary me-1">A</span> Option A
+                        </label>
+                        {{ form.option_a(class="form-control",
+                                         placeholder="Enter option A") }}
+                        {% if form.option_a.errors %}
+                            <div class="text-danger small">{{ form.option_a.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Option B -->
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-primary me-1">B</span> Option B
+                        </label>
+                        {{ form.option_b(class="form-control",
+                                         placeholder="Enter option B") }}
+                        {% if form.option_b.errors %}
+                            <div class="text-danger small">{{ form.option_b.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Option C -->
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-primary me-1">C</span> Option C
+                        </label>
+                        {{ form.option_c(class="form-control",
+                                         placeholder="Enter option C") }}
+                        {% if form.option_c.errors %}
+                            <div class="text-danger small">{{ form.option_c.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Option D -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-primary me-1">D</span> Option D
+                        </label>
+                        {{ form.option_d(class="form-control",
+                                         placeholder="Enter option D") }}
+                        {% if form.option_d.errors %}
+                            <div class="text-danger small">{{ form.option_d.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Correct Answer -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Correct Answer
+                        </label>
+                        <div class="d-flex gap-3">
+                            {% for subfield in form.correct_option %}
+                            <div class="form-check">
+                                {{ subfield(class="form-check-input") }}
+                                <label class="form-check-label fw-bold"
+                                       for="{{ subfield.id }}">
+                                    {{ subfield.label.text }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.correct_option.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.correct_option.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Marks -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-star text-warning me-1"></i> Marks
+                        </label>
+                        {{ form.marks(class="form-control", style="width:100px") }}
+                        {% if form.marks.errors %}
+                            <div class="text-danger small">{{ form.marks.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus me-2"></i>Add Question
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===== RIGHT: Questions Already Added ===== -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-list me-2 text-success"></i>
+                    Questions Added
+                </h5>
+                <span class="badge bg-success fs-6">
+                    {{ questions|length }} Questions
+                </span>
+            </div>
+            <div class="card-body p-0">
+
+                {% if questions %}
+                    {% for q in questions %}
+                    <div class="border-bottom p-3">
+
+                        <!-- Question number and text -->
+                        <div class="d-flex justify-content-between align-items-start">
+                            <p class="fw-semibold mb-2">
+                                <span class="badge bg-primary me-2">Q{{ loop.index }}</span>
+                                {{ q.question_text }}
+                            </p>
+                            <!-- Delete button -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.delete_question',
+                                                     question_id=q.id) }}"
+                                  onsubmit="return confirm('Delete this question?')">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger ms-2">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Options -->
+                        <div class="row g-1 small">
+                            <div class="col-6">
+                                <span class="badge bg-secondary me-1">A</span>
+                                {{ q.option_a }}
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-secondary me-1">B</span>
+                                {{ q.option_b }}
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-secondary me-1">C</span>
+                                {{ q.option_c }}
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-secondary me-1">D</span>
+                                {{ q.option_d }}
+                            </div>
+                        </div>
+
+                        <!-- Correct answer + marks -->
+                        <div class="mt-2">
+                            <span class="badge bg-success">
+                                <i class="fas fa-check me-1"></i>
+                                Answer: {{ q.correct_option }}
+                            </span>
+                            <span class="badge bg-warning text-dark ms-1">
+                                {{ q.marks }} mark(s)
+                            </span>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-question fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">
+                            No questions yet.<br>Add your first question!
+                        </p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- Total Marks Info -->
+        {% if questions %}
+        <div class="alert alert-success mt-3">
+            <i class="fas fa-star me-2"></i>
+            <strong>Total Marks:</strong>
+            {{ questions | sum(attribute='marks') }} marks across
+            {{ questions|length }} questions
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

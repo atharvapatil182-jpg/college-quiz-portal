@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% block title %}Home | College Quiz Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00d4ff, #7b2fff, #00ffcc);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 3s linear infinite;
+        line-height: 1.2;
+    }
+
+    @keyframes shimmer {
+        0%   { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.6);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .hero-icon {
+        font-size: 5rem;
+        background: linear-gradient(135deg, #00d4ff, #7b2fff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: float 3s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    .branch-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 50px;
+        border: 1px solid rgba(0,212,255,0.3);
+        background: rgba(0,212,255,0.05);
+        color: rgba(255,255,255,0.8);
+        margin: 5px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .branch-badge:hover {
+        border-color: #00d4ff;
+        background: rgba(0,212,255,0.1);
+        color: #00d4ff;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,212,255,0.15);
+    }
+
+    .feature-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 35px 25px;
+        text-align: center;
+        transition: all 0.4s ease;
+        height: 100%;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(0,212,255,0.3);
+        background: rgba(0,212,255,0.05);
+        box-shadow: 0 20px 60px rgba(0,212,255,0.1);
+    }
+
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 1.8rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00d4ff, #7b2fff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="animate-fadeInUp">
+
+        <!-- Icon -->
+        <div class="mb-4">
+            <i class="fas fa-graduation-cap hero-icon"></i>
+        </div>
+
+        <!-- Title -->
+        <h1 class="hero-title mb-3">
+            College Quiz Portal
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="hero-subtitle mb-5">
+            Advanced branch-wise quiz platform for diploma students.
+            Test your knowledge, compete with peers, and track your progress.
+        </p>
+
+        <!-- Branch Badges -->
+        <div class="mb-5">
+            <span class="branch-badge">
+                <i class="fas fa-laptop-code me-1"></i>Computer Engineering
+            </span>
+            <span class="branch-badge">
+                <i class="fas fa-network-wired me-1"></i>Information Technology
+            </span>
+            <span class="branch-badge">
+                <i class="fas fa-cogs me-1"></i>Mechanical Engineering
+            </span>
+            <span class="branch-badge">
+                <i class="fas fa-hard-hat me-1"></i>Civil Engineering
+            </span>
+            <span class="branch-badge">
+                <i class="fas fa-bolt me-1"></i>Electrical Engineering
+            </span>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="d-flex gap-3 justify-content-center flex-wrap mb-5">
+            <a href="{{ url_for('auth.login') }}"
+               class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+            <a href="{{ url_for('auth.signup') }}"
+               class="btn btn-outline-primary btn-lg px-5">
+                <i class="fas fa-user-plus me-2"></i>Register Now
+            </a>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Features Section -->
+<div class="row g-4 mb-5">
+    <div class="col-12 text-center mb-3">
+        <h2 class="fw-bold" style="font-size:2rem;">
+            Why Choose
+            <span style="background:linear-gradient(135deg,#00d4ff,#7b2fff);
+                         -webkit-background-clip:text;
+                         -webkit-text-fill-color:transparent;
+                         background-clip:text;">
+                Quiz Portal?
+            </span>
+        </h2>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(0,212,255,0.1);
+                        border:1px solid rgba(0,212,255,0.3);">
+                <i class="fas fa-clock" style="color:#00d4ff;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Smart Timer</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Precision countdown with auto-submit when time expires.
+                Never miss a deadline!
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(123,47,255,0.1);
+                        border:1px solid rgba(123,47,255,0.3);">
+                <i class="fas fa-chart-bar" style="color:#7b2fff;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Instant Results</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Get detailed performance analysis immediately after
+                submission with answer review.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(0,255,204,0.1);
+                        border:1px solid rgba(0,255,204,0.3);">
+                <i class="fas fa-trophy" style="color:#00ffcc;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Leaderboard</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Compete with classmates and see where you rank
+                among the best performers.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(255,215,0,0.1);
+                        border:1px solid rgba(255,215,0,0.3);">
+                <i class="fas fa-shield-alt" style="color:#ffd700;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Secure Platform</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Password hashing, session management and CSRF protection
+                keep your data safe.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(255,68,68,0.1);
+                        border:1px solid rgba(255,68,68,0.3);">
+                <i class="fas fa-code-branch" style="color:#ff4444;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Branch Specific</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Quizzes tailored for each diploma branch ensuring
+                relevant content for every student.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon"
+                 style="background:rgba(0,200,81,0.1);
+                        border:1px solid rgba(0,200,81,0.3);">
+                <i class="fas fa-download" style="color:#00c851;"></i>
+            </div>
+            <h5 class="fw-bold mb-3">Export Reports</h5>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem;">
+                Admin can download complete result reports in
+                CSV format for analysis.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

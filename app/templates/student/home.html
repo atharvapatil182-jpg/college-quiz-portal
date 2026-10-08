@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Student Home | Quiz Portal{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div style="background: linear-gradient(135deg, #29b6f6, #0288d1);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 32px rgba(41,182,246,0.3);
+                    padding: 30px;">
+            <div class="d-flex align-items-center">
+                <div style="width:70px; height:70px;
+                            background:rgba(255,255,255,0.25);
+                            border-radius:50%;
+                            display:flex; align-items:center;
+                            justify-content:center;
+                            margin-right:25px; flex-shrink:0;">
+                    <i class="fas fa-user-graduate"
+                       style="font-size:1.8rem; color:#ffffff;"></i>
+                </div>
+                <div>
+                    <h3 style="color:#ffffff; font-weight:700;
+                               margin-bottom:5px; font-size:1.5rem;">
+                        Welcome, {{ current_user.full_name }}!
+                    </h3>
+                    <p style="color:#ffffff; opacity:0.95;
+                              margin-bottom:0; font-size:1rem;">
+                        <i class="fas fa-code-branch me-2"></i>
+                        {{ branch.name if branch else 'No Branch Assigned' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Available Quizzes Section -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">
+        <i class="fas fa-clipboard-list me-2" style="color:#0288d1;"></i>
+        Available Quizzes
+    </h4>
+    <span class="badge bg-primary fs-6">
+        {{ quizzes|length }} Quiz(zes)
+    </span>
+</div>
+
+
+{% if quizzes %}
+    <div class="row">
+        {% for quiz in quizzes %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+
+                <div class="card-header pt-3 pb-2">
+                    <span class="badge bg-primary mb-2">
+                        {{ quiz.branch.name }}
+                    </span>
+                    <h5 class="card-title fw-bold mb-0">{{ quiz.title }}</h5>
+                </div>
+
+                <div class="card-body">
+                    {% if quiz.description %}
+                        <p class="text-muted small">{{ quiz.description }}</p>
+                    {% endif %}
+
+                    <div class="row text-center g-2 mb-3">
+                        <div class="col-6">
+                            <div style="background:rgba(41,182,246,0.08);
+                                        border-radius:10px; padding:10px;">
+                                <i class="fas fa-clock" style="color:#0288d1;"></i>
+                                <div class="small fw-semibold" style="color:#0d47a1;">
+                                    {{ quiz.duration_minutes }} mins
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background:rgba(0,200,81,0.08);
+                                        border-radius:10px; padding:10px;">
+                                <i class="fas fa-question-circle" style="color:#00c851;"></i>
+                                <div class="small fw-semibold" style="color:#0d47a1;">
+                                    {{ quiz.questions|length }} Questions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted mb-3">
+                        <i class="fas fa-star" style="color:#ffd700;"></i>
+                        Total Marks:
+                        <strong>{{ quiz.questions | sum(attribute='marks') }}</strong>
+                    </p>
+                </div>
+
+                <div class="card-footer">
+                    {% if quiz.id in attempted_quiz_ids %}
+                        <button class="btn btn-secondary w-100" disabled>
+                            <i class="fas fa-check-circle me-2"></i>
+                            Already Attempted
+                        </button>
+                    {% elif quiz.questions|length == 0 %}
+                        <button class="btn btn-outline-secondary w-100" disabled>
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            No Questions Yet
+                        </button>
+                    {% else %}
+                        <a href="{{ url_for('student.start_quiz', quiz_id=quiz.id) }}"
+                           class="btn btn-primary w-100"
+                           onclick="return confirm(
+                               'Ready to start {{ quiz.title }}?\n\n' +
+                               'Duration: {{ quiz.duration_minutes }} minutes\n' +
+                               'Questions: {{ quiz.questions|length }}\n\n' +
+                               'Timer will start immediately!')">
+                            <i class="fas fa-play me-2"></i>Start Quiz
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% else %}
+    <div class="text-center py-5">
+        <div class="card py-5">
+            <div class="card-body">
+                <i class="fas fa-clipboard fa-4x mb-4" style="color:#b3e5fc;"></i>
+                <h4 style="color:#5c9bd6;">No Quizzes Available</h4>
+                <p style="color:#90caf9;">
+                    No quizzes have been created for
+                    <strong>{{ branch.name if branch else 'your branch' }}</strong> yet.
+                    <br>Please check back later!
+                </p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+
+<!-- Quick Links -->
+<div class="row mt-4">
+    <div class="col-md-6 mb-3">
+        <a href="{{ url_for('student.leaderboard') }}"
+           class="card text-decoration-none">
+            <div class="card-body d-flex align-items-center p-3">
+                <i class="fas fa-trophy fa-2x me-3" style="color:#ffd700;"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold" style="color:#0d47a1;">Leaderboard</h6>
+                    <small class="text-muted">See top scorers</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body d-flex align-items-center p-3">
+                <i class="fas fa-chart-line fa-2x me-3" style="color:#00c851;"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold" style="color:#0d47a1;">Your Attempts</h6>
+                    <small class="text-muted">
+                        {{ attempted_quiz_ids|length }} quiz(zes) completed
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Manage Admins{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-user-shield me-2" style="color:#0288d1;"></i>
+            Manage Admins
+        </h2>
+        <p class="text-muted mb-0">Super Admin Panel</p>
+    </div>
+    <a href="{{ url_for('admin.add_admin') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add New Admin
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header py-3">
+        <h5 class="fw-bold mb-0">
+            <i class="fas fa-users-cog me-2"></i>All Admins ({{ admins|length }})
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr style="background:rgba(41,182,246,0.15);">
+                        <th style="padding:15px; color:#0288d1 !important;">#</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Name</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Email</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Role</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Created</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin_user in admins %}
+                    <tr>
+                        <td style="padding:15px; color:#0d47a1 !important;">{{ loop.index }}</td>
+                        <td style="padding:15px;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:38px; height:38px; border-radius:50%;
+                                            background:linear-gradient(135deg,#29b6f6,#0288d1);
+                                            color:white; font-weight:700; display:flex;
+                                            align-items:center; justify-content:center;">
+                                    {{ admin_user.full_name[0].upper() }}
+                                </div>
+                                <strong style="color:#0d47a1;">{{ admin_user.full_name }}</strong>
+                            </div>
+                        </td>
+                        <td style="padding:15px; color:#1565c0 !important;">{{ admin_user.email }}</td>
+                        <td style="padding:15px;">
+                            {% if admin_user.is_super_admin %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-crown me-1"></i>Super Admin
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:15px; color:#5c9bd6 !important; font-size:0.85rem;">
+                            {{ admin_user.created_at.strftime('%d %b %Y') }}
+                        </td>
+                        <td style="padding:15px;">
+                            {% if not admin_user.is_super_admin and admin_user.id != current_user.id %}
+                            <form method="POST" action="{{ url_for('admin.delete_admin', admin_id=admin_user.id) }}"
+                                  onsubmit="return confirm('Delete this admin?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                                <span class="text-muted small">Protected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

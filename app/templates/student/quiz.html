@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} | Quiz{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Timer styles */
+    #timer-box {
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+    }
+    .timer-display {
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: monospace;
+        letter-spacing: 3px;
+    }
+    .timer-warning {
+        color: #ff6b00 !important;
+        animation: pulse 1s infinite;
+    }
+    .timer-danger {
+        color: #dc3545 !important;
+        animation: pulse 0.5s infinite;
+    }
+    @keyframes pulse {
+        0%   { opacity: 1; }
+        50%  { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    /* Question card styles */
+    .question-card {
+        border-left: 4px solid #0f3460;
+        transition: box-shadow 0.2s;
+    }
+    .question-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Option label styles */
+    .option-label {
+        cursor: pointer;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        display: block;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: left;
+        background: white;
+    }
+    .option-label:hover {
+        border-color: #0f3460;
+        background: #f0f4ff;
+    }
+    /* When option is selected */
+    input[type="radio"]:checked + .option-label {
+        border-color: #0f3460;
+        background: #e8eeff;
+        font-weight: 600;
+    }
+    /* Hide default radio buttons */
+    .option-radio {
+        display: none;
+    }
+
+    /* Progress bar */
+    .question-progress {
+        height: 6px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ===== WARNING: Don't leave the page ===== -->
+<div class="alert alert-warning py-2 mb-3">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Warning:</strong> Do not refresh or close this page!
+    Your quiz will be auto-submitted when the timer ends.
+</div>
+
+
+<!-- Quiz Form (wraps everything) -->
+<form method="POST"
+      action="{{ url_for('student.submit_quiz', quiz_id=quiz.id) }}"
+      id="quizForm">
+
+    <!-- CSRF Token -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+
+        <!-- ===== LEFT: Questions ===== -->
+        <div class="col-md-8">
+
+            <!-- Quiz Title -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4"
+                     style="background: linear-gradient(135deg, #0f3460, #16213e);">
+                    <h4 class="text-white fw-bold mb-1">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        {{ quiz.title }}
+                    </h4>
+                    <p class="text-white opacity-75 mb-0">
+                        {{ quiz.branch.name }} |
+                        {{ questions|length }} Questions |
+                        {{ quiz.duration_minutes }} Minutes
+                    </p>
+                </div>
+                <!-- Progress bar showing how many answered -->
+                <div class="card-footer bg-white border-0 py-2">
+                    <small class="text-muted">
+                        Questions answered:
+                        <span id="answered-count">0</span>/{{ questions|length }}
+                    </small>
+                    <div class="progress question-progress mt-1">
+                        <div class="progress-bar bg-success"
+                             id="progress-bar"
+                             style="width:0%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== QUESTIONS LOOP ===== -->
+            {% for question in questions %}
+            <div class="card border-0 shadow-sm mb-3 question-card"
+                 id="qcard-{{ loop.index }}">
+                <div class="card-body p-4">
+
+                    <!-- Question Number + Text -->
+                    <h6 class="fw-bold mb-3">
+                        <span class="badge bg-primary me-2">
+                            Q{{ loop.index }}
+                        </span>
+                        {{ question.question_text }}
+                        <span class="badge bg-warning text-dark float-end">
+                            {{ question.marks }} mark(s)
+                        </span>
+                    </h6>
+
+                    <!-- 4 Options -->
+                    <div class="options-container">
+
+                        <!-- Option A -->
+                        <div>
+                            <input type="radio"
+                                   class="option-radio"
+                                   name="question_{{ question.id }}"
+                                   id="q{{ question.id }}_a"
+                                   value="A"
+                                   onchange="updateProgress()">
+                            <label class="option-label"
+                                   for="q{{ question.id }}_a">
+                                <span class="badge bg-primary me-2">A</span>
+                                {{ question.option_a }}
+                            </label>
+                        </div>
+
+                        <!-- Option B -->
+                        <div>
+                            <input type="radio"
+                                   class="option-radio"
+                                   name="question_{{ question.id }}"
+                                   id="q{{ question.id }}_b"
+                                   value="B"
+                                   onchange="updateProgress()">
+                            <label class="option-label"
+                                   for="q{{ question.id }}_b">
+                                <span class="badge bg-primary me-2">B</span>
+                                {{ question.option_b }}
+                            </label>
+                        </div>
+
+                        <!-- Option C -->
+                        <div>
+                            <input type="radio"
+                                   class="option-radio"
+                                   name="question_{{ question.id }}"
+                                   id="q{{ question.id }}_c"
+                                   value="C"
+                                   onchange="updateProgress()">
+                            <label class="option-label"
+                                   for="q{{ question.id }}_c">
+                                <span class="badge bg-primary me-2">C</span>
+                                {{ question.option_c }}
+                            </label>
+                        </div>
+
+                        <!-- Option D -->
+                        <div>
+                            <input type="radio"
+                                   class="option-radio"
+                                   name="question_{{ question.id }}"
+                                   id="q{{ question.id }}_d"
+                                   value="D"
+                                   onchange="updateProgress()">
+                            <label class="option-label"
+                                   for="q{{ question.id }}_d">
+                                <span class="badge bg-primary me-2">D</span>
+                                {{ question.option_d }}
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <!-- ===== END QUESTIONS LOOP ===== -->
+
+
+            <!-- Submit Button (bottom) -->
+            <div class="d-grid mb-5">
+                <button type="button"
+                        class="btn btn-success btn-lg"
+                        onclick="confirmSubmit()">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Submit Quiz
+                </button>
+            </div>
+
+        </div>
+        <!-- ===== END LEFT ===== -->
+
+
+        <!-- ===== RIGHT: Timer + Summary ===== -->
+        <div class="col-md-4">
+            <div id="timer-box">
+
+                <!-- Timer Card -->
+                <div class="card border-0 shadow-sm mb-3"
+                     id="timer-card">
+                    <div class="card-header bg-dark text-white text-center py-3">
+                        <h6 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Time Remaining
+                        </h6>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <div class="timer-display text-dark"
+                             id="timer-display">
+                            {{ '%02d'|format(quiz.duration_minutes) }}:00
+                        </div>
+                        <small class="text-muted">minutes : seconds</small>
+                    </div>
+                </div>
+
+                <!-- Quiz Info Card -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Quiz Info
+                        </h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted">Questions</td>
+                                <td class="fw-bold">{{ questions|length }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Total Marks</td>
+                                <td class="fw-bold">
+                                    {{ questions|sum(attribute='marks') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Duration</td>
+                                <td class="fw-bold">
+                                    {{ quiz.duration_minutes }} mins
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Question Navigation -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-2">
+                        <small class="fw-bold text-muted">QUESTION NAVIGATOR</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for question in questions %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary nav-btn"
+                                    id="nav-{{ loop.index }}"
+                                    onclick="scrollToQuestion({{ loop.index }})">
+                                {{ loop.index }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2 small">
+                            <span class="badge bg-success me-1">■</span>Answered
+                            <span class="badge bg-secondary ms-2 me-1">■</span>Not Answered
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- ===== END RIGHT ===== -->
+
+    </div>
+</form>
+
+{% endblock %}
+
+
+<!-- ===== JAVASCRIPT: Timer + Auto Submit ===== -->
+{% block extra_js %}
+<script>
+// ============================================================
+// TIMER CONFIGURATION
+// Get total seconds from quiz duration
+// ============================================================
+let totalSeconds = {{ quiz.duration_minutes }} * 60;
+let timerInterval;
+let isSubmitted = false;
+
+// Get references to HTML elements
+const timerDisplay  = document.getElementById('timer-display');
+const timerCard     = document.getElementById('timer-card');
+const quizForm      = document.getElementById('quizForm');
+const totalQuestions = {{ questions|length }};
+
+
+// ============================================================
+// startTimer(): Starts the countdown
+// ============================================================
+function startTimer() {
+    timerInterval = setInterval(function() {
+
+        // Don't count down if already submitted
+        if (isSubmitted) return;
+
+        totalSeconds--;
+
+        // Calculate minutes and seconds
+        let minutes = Math.floor(totalSeconds / 60);
+        let seconds = totalSeconds % 60;
+
+        // Format as MM:SS (add leading zero if needed)
+        let display = String(minutes).padStart(2, '0') + ':' +
+                      String(seconds).padStart(2, '0');
+
+        timerDisplay.textContent = display;
+
+        // ---- Color changes based on time left ----
+
+        // Warning: less than 5 minutes
+        if (totalSeconds <= 300 && totalSeconds > 60) {
+            timerDisplay.className = 'timer-display timer-warning';
+            timerCard.classList.add('border-warning');
+        }
+
+        // Danger: less than 1 minute
+        if (totalSeconds <= 60) {
+            timerDisplay.className = 'timer-display timer-danger';
+            timerCard.classList.remove('border-warning');
+            timerCard.classList.add('border-danger');
+        }
+
+        // ---- Time is UP: Auto submit ----
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            autoSubmit();
+        }
+
+    }, 1000); // runs every 1000ms = 1 second
+}
+
+
+// ============================================================
+// autoSubmit(): Called when timer hits 0
+// ============================================================
+function autoSubmit() {
+    if (isSubmitted) return;
+    isSubmitted = true;
+
+    // Show alert to user
+    alert('⏰ Time is up! Your quiz is being submitted automatically.');
+
+    // Submit the form
+    quizForm.submit();
+}
+
+
+// ============================================================
+// confirmSubmit(): Called when student clicks Submit button
+// ============================================================
+function confirmSubmit() {
+    // Count how many questions are answered
+    let answered = countAnswered();
+    let unanswered = totalQuestions - answered;
+
+    let message = `You have answered ${answered} out of ${totalQuestions} questions.`;
+
+    if (unanswered > 0) {
+        message += `\n\n⚠️ ${unanswered} question(s) are unanswered.`;
+    }
+
+    message += '\n\nAre you sure you want to submit?';
+
+    if (confirm(message)) {
+        isSubmitted = true;
+        clearInterval(timerInterval);
+        quizForm.submit();
+    }
+}
+
+
+// ============================================================
+// countAnswered(): Counts how many questions have been answered
+// ============================================================
+function countAnswered() {
+    let count = 0;
+    // Get all radio button groups
+    let names = new Set();
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        names.add(radio.name);
+    });
+
+    // Check each group if any option is selected
+    names.forEach(function(name) {
+        let selected = document.querySelector(
+            `input[name="${name}"]:checked`
+        );
+        if (selected) count++;
+    });
+    return count;
+}
+
+
+// ============================================================
+// updateProgress(): Updates progress bar + navigator buttons
+// ============================================================
+function updateProgress() {
+    let answered = countAnswered();
+
+    // Update answered count text
+    document.getElementById('answered-count').textContent = answered;
+
+    // Update progress bar width
+    let percent = (answered / totalQuestions) * 100;
+    document.getElementById('progress-bar').style.width = percent + '%';
+
+    // Update navigator buttons color
+    let names = new Set();
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        names.add(radio.name);
+    });
+
+    let index = 1;
+    names.forEach(function(name) {
+        let selected = document.querySelector(
+            `input[name="${name}"]:checked`
+        );
+        let navBtn = document.getElementById('nav-' + index);
+        if (navBtn) {
+            if (selected) {
+                // Answered: green
+                navBtn.classList.remove('btn-outline-secondary');
+                navBtn.classList.add('btn-success');
+            } else {
+                // Not answered: grey
+                navBtn.classList.remove('btn-success');
+                navBtn.classList.add('btn-outline-secondary');
+            }
+        }
+        index++;
+    });
+}
+
+
+// ============================================================
+// scrollToQuestion(): Scrolls to a question when nav clicked
+// ============================================================
+function scrollToQuestion(index) {
+    let card = document.getElementById('qcard-' + index);
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+
+// ============================================================
+// Warn user if they try to leave/refresh the page
+// ============================================================
+window.addEventListener('beforeunload', function(e) {
+    if (!isSubmitted) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure? Your quiz progress will be lost!';
+    }
+});
+
+
+// ============================================================
+// START THE TIMER when page loads
+// ============================================================
+window.onload = function() {
+    startTimer();
+    updateProgress();
+};
+
+</script>
+{% endblock %}

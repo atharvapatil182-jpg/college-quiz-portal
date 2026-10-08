@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Students | Admin{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-users me-2"></i>All Students
+        </h2>
+        <p class="text-muted mb-0">Manage all registered students</p>
+    </div>
+    <span class="badge bg-primary fs-6 px-3 py-2">
+        {{ students|length }} Students
+    </span>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ url_for('admin.students') }}">
+            <div class="row align-items-center g-2">
+                <div class="col-auto">
+                    <label class="form-label fw-semibold mb-0">
+                        <i class="fas fa-filter me-1"></i>Filter by Branch:
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <select name="branch_id" class="form-select"
+                            onchange="this.form.submit()">
+                        <option value="">-- All Branches --</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}"
+                                {% if selected_branch == branch.id %}selected{% endif %}>
+                                {{ branch.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if selected_branch %}
+                <div class="col-auto">
+                    <a href="{{ url_for('admin.students') }}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="card">
+    <div class="card-header py-3">
+        <h5 class="fw-bold mb-0">
+            <i class="fas fa-list me-2"></i>Student Directory
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if students %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr style="background:rgba(41,182,246,0.15);">
+                        <th style="color:#0288d1; padding:15px;">#</th>
+                        <th style="color:#0288d1; padding:15px;">Student Name</th>
+                        <th style="color:#0288d1; padding:15px;">Email</th>
+                        <th style="color:#0288d1; padding:15px;">Branch</th>
+                        <th style="color:#0288d1; padding:15px;">Quizzes Taken</th>
+                        <th style="color:#0288d1; padding:15px;">Avg Score</th>
+                        <th style="color:#0288d1; padding:15px;">Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr style="border-bottom:1px solid rgba(41,182,246,0.1);">
+                        <td style="color:#1565c0; padding:15px;">
+                            {{ loop.index }}
+                        </td>
+                        <td style="padding:15px;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:40px; height:40px;
+                                            border-radius:50%;
+                                            background:linear-gradient(135deg,#29b6f6,#0288d1);
+                                            color:white; font-weight:700;
+                                            display:flex; align-items:center;
+                                            justify-content:center;
+                                            font-size:1rem; flex-shrink:0;">
+                                    {{ student.full_name[0].upper() }}
+                                </div>
+                                <strong style="color:#0d47a1;">
+                                    {{ student.full_name }}
+                                </strong>
+                            </div>
+                        </td>
+                        <td style="color:#1565c0; padding:15px;">
+                            {{ student.email }}
+                        </td>
+                        <td style="padding:15px;">
+                            {% if student.branch %}
+                                <span style="background:rgba(41,182,246,0.15);
+                                             color:#0288d1; padding:4px 12px;
+                                             border-radius:20px; font-size:0.85rem;
+                                             font-weight:600; border:1px solid rgba(41,182,246,0.3);">
+                                    {{ student.branch.name }}
+                                </span>
+                            {% else %}
+                                <span style="color:#999;">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:15px;">
+                            <span style="background:rgba(0,200,81,0.15);
+                                         color:#00897b; padding:4px 12px;
+                                         border-radius:20px; font-size:0.85rem;
+                                         font-weight:600;">
+                                {{ student.results|length }} Quiz(zes)
+                            </span>
+                        </td>
+                        <td style="padding:15px;">
+                            {% if student.results %}
+                                {% set avg = (student.results|sum(attribute='percentage') / student.results|length)|round(1) %}
+                                <strong style="
+                                    color:{% if avg >= 75 %}#00897b
+                                    {% elif avg >= 50 %}#0288d1
+                                    {% elif avg >= 35 %}#f57c00
+                                    {% else %}#e53935{% endif %};">
+                                    {{ avg }}%
+                                </strong>
+                            {% else %}
+                                <span style="color:#999;">No attempts</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:#5c9bd6; padding:15px; font-size:0.85rem;">
+                            {{ student.created_at.strftime('%d %b %Y') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x mb-3" style="color:#b3e5fc;"></i>
+            <h5 style="color:#5c9bd6;">No Students Found</h5>
+            <p style="color:#90caf9;">No students have registered yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

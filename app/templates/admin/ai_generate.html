@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Generate Quiz with AI | Admin{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-robot me-2 text-primary"></i>Generate Quiz with AI
+        </h2>
+        <p class="text-muted mb-0">Describe the quiz and Groq AI will write the questions for you</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form method="POST" action="{{ url_for('ai.generate') }}" id="ai-generate-form">
+                    {{ form.hidden_tag() }}
+
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Quiz Details
+                    </h5>
+
+                    <!-- Quiz Title -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-heading me-1"></i> Quiz Title
+                        </label>
+                        {{ form.title(class="form-control form-control-lg",
+                                     placeholder="e.g. Data Structures Unit Test") }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-align-left me-1"></i> Description (Optional)
+                        </label>
+                        {{ form.description(class="form-control", rows=2,
+                                            placeholder="Brief description of this quiz...") }}
+                    </div>
+
+                    <!-- Chapter / Unit -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-book me-1"></i> Chapter / Unit Name
+                        </label>
+                        {{ form.chapter(class="form-control form-control-lg",
+                                       placeholder="e.g. Chapter 4 - Linked Lists") }}
+                        {% if form.chapter.errors %}
+                            <div class="text-danger small mt-1">{{ form.chapter.errors[0] }}</div>
+                        {% endif %}
+                        <div class="form-text">Every generated question is grounded in this chapter/unit.</div>
+                    </div>
+
+                    <!-- Branch + Time Limit -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-code-branch me-1"></i> Branch
+                            </label>
+                            {{ form.branch(class="form-select form-select-lg") }}
+                            {% if form.branch.errors %}
+                                <div class="text-danger small mt-1">{{ form.branch.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-clock me-1"></i> Quiz Time Limit (Minutes)
+                            </label>
+                            {{ form.duration_minutes(class="form-control form-control-lg",
+                                                     placeholder="e.g. 30") }}
+                            {% if form.duration_minutes.errors %}
+                                <div class="text-danger small mt-1">{{ form.duration_minutes.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Topics -->
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-list-ol me-2 text-primary"></i>Topics
+                        </h5>
+                        <button type="button" id="add-topic-btn" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i>Add Topic
+                        </button>
+                    </div>
+                    <p class="text-muted small">
+                        Add each topic you want questions on and how many questions the AI
+                        should write for it (up to {{ max_per_topic }} per topic,
+                        {{ max_total }} in total).
+                    </p>
+
+                    <div id="topic-rows"></div>
+
+                    <template id="topic-row-template">
+                        <div class="row g-2 align-items-center topic-row mb-2">
+                            <div class="col-7 col-md-8">
+                                <input type="text" name="topic_name[]" class="form-control"
+                                       placeholder="Topic name, e.g. Singly Linked Lists">
+                            </div>
+                            <div class="col-3 col-md-3">
+                                <input type="number" name="topic_count[]" class="form-control"
+                                       min="1" max="{{ max_per_topic }}" placeholder="# questions">
+                            </div>
+                            <div class="col-2 col-md-1 text-end">
+                                <button type="button" class="btn btn-outline-danger remove-topic-btn"
+                                        title="Remove topic">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Submit -->
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg" id="generate-submit-btn">
+                            <i class="fas fa-magic me-2"></i>Generate Questions
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            After generating, you'll review, edit, and can regenerate individual
+            questions or whole topics before anything is saved to the quiz.
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var rowsContainer = document.getElementById('topic-rows');
+    var template = document.getElementById('topic-row-template');
+    var initialRows = {{ topic_rows | tojson }};
+    var maxPerTopic = {{ max_per_topic }};
+
+    function addRow(name, count) {
+        var fragment = template.content.cloneNode(true);
+        var nameInput = fragment.querySelector('input[name="topic_name[]"]');
+        var countInput = fragment.querySelector('input[name="topic_count[]"]');
+        nameInput.value = name || '';
+        countInput.value = (count === undefined || count === null || count === '') ? 5 : count;
+        countInput.max = maxPerTopic;
+        var row = fragment.querySelector('.topic-row');
+        fragment.querySelector('.remove-topic-btn').addEventListener('click', function () {
+            row.remove();
+            updateRemoveButtons();
+        });
+        rowsContainer.appendChild(fragment);
+    }
+
+    function updateRemoveButtons() {
+        var rows = rowsContainer.querySelectorAll('.topic-row');
+        rows.forEach(function (row) {
+            row.querySelector('.remove-topic-btn').disabled = rows.length <= 1;
+        });
+    }
+
+    initialRows.forEach(function (row) {
+        addRow(row.topic_name, row.requested_count);
+    });
+    updateRemoveButtons();
+
+    document.getElementById('add-topic-btn').addEventListener('click', function () {
+        addRow('', 5);
+        updateRemoveButtons();
+    });
+
+    document.getElementById('ai-generate-form').addEventListener('submit', function () {
+        var btn = document.getElementById('generate-submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating... this can take a moment';
+    });
+})();
+</script>
+
+{% endblock %}

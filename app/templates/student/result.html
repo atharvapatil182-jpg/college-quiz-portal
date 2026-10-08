@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Result | {{ result.quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .score-ring { width:130px; height:130px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:6px solid; font-weight:700; }
+  .answer-card { border-left:5px solid; border-radius:8px; margin-bottom:1rem; }
+  .answer-card.correct { border-color:#28a745; background:#f0fff4; }
+  .answer-card.wrong   { border-color:#dc3545; background:#fff5f5; }
+  .answer-card.skipped { border-color:#ffc107; background:#fffbf0; }
+  .opt-row { padding:4px 8px; border-radius:5px; margin-bottom:3px; font-size:0.92rem; }
+  .opt-correct  { background:#d4edda; color:#155724; font-weight:600; }
+  .opt-wrong    { background:#f8d7da; color:#721c24; font-weight:600; }
+  .opt-neutral  { background:#f8f9fa; color:#495057; }
+  .explanation-box { background:#e8f4fd; border-left:4px solid #0288d1; border-radius:4px; padding:8px 12px; margin-top:8px; font-size:0.88rem; color:#0d47a1; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-0"><i class="fas fa-poll me-2 text-primary"></i>Quiz Result</h2>
+    <p class="text-muted mb-0">{{ result.quiz.title }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('student.download_pdf', result_id=result.id) }}"
+       class="btn btn-danger">
+      <i class="fas fa-file-pdf me-2"></i>Download PDF
+    </a>
+    <a href="{{ url_for('student.home') }}" class="btn btn-outline-primary">
+      <i class="fas fa-home me-2"></i>Back to Home
+    </a>
+  </div>
+</div>
+
+<!-- Score Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-4">
+    <div class="row align-items-center">
+
+      <!-- Ring -->
+      <div class="col-md-3 text-center mb-3 mb-md-0">
+        {% set pct = result.percentage | round(1) %}
+        {% if pct >= 75 %}
+          {% set ring_color = '#28a745' %}{% set ring_bg = '#d4edda' %}
+        {% elif pct >= 50 %}
+          {% set ring_color = '#17a2b8' %}{% set ring_bg = '#d1ecf1' %}
+        {% elif pct >= 35 %}
+          {% set ring_color = '#ffc107' %}{% set ring_bg = '#fff3cd' %}
+        {% else %}
+          {% set ring_color = '#dc3545' %}{% set ring_bg = '#f8d7da' %}
+        {% endif %}
+        <div class="score-ring mx-auto" style="border-color:{{ ring_color }}; background:{{ ring_bg }};">
+          <span style="font-size:1.8rem; color:{{ ring_color }};">{{ pct }}%</span>
+          <span style="font-size:0.75rem; color:{{ ring_color }};">
+            {% if result.percentage >= 35 %}PASS{% else %}FAIL{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="col-md-9">
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="bg-light rounded p-3 text-center">
+              <div class="text-muted small">Score</div>
+              <div class="fw-bold fs-5">{{ result.score }}/{{ result.total_marks }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-success bg-opacity-10 rounded p-3 text-center">
+              <div class="text-muted small">Correct</div>
+              <div class="fw-bold fs-5 text-success">
+                {{ answers | selectattr('is_correct') | list | length }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-danger bg-opacity-10 rounded p-3 text-center">
+              <div class="text-muted small">Wrong</div>
+              <div class="fw-bold fs-5 text-danger">
+                {{ answers | rejectattr('is_correct') | selectattr('selected_option') | list | length }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-warning bg-opacity-10 rounded p-3 text-center">
+              <div class="text-muted small">Skipped</div>
+              <div class="fw-bold fs-5 text-warning">
+                {{ answers | selectattr('selected_option', 'none') | list | length }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="progress" style="height:18px; border-radius:10px;">
+            <div class="progress-bar
+              {% if result.percentage >= 75 %}bg-success
+              {% elif result.percentage >= 50 %}bg-info
+              {% elif result.percentage >= 35 %}bg-warning
+              {% else %}bg-danger{% endif %}"
+              style="width:{{ result.percentage }}%; transition:width 1s ease;" role="progressbar">
+              {{ pct }}%
+            </div>
+          </div>
+          <small class="text-muted">
+            Submitted: {{ result.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+          </small>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Answer Review -->
+<h5 class="fw-bold mb-3"><i class="fas fa-list-check me-2 text-primary"></i>Answer Review</h5>
+
+{% for ans in answers %}
+  {% set q = questions.get(ans.question_id) %}
+  {% if q %}
+    {% set sel = (ans.selected_option or '')|upper %}
+    {% set cor = (q.correct_option or '')|upper %}
+
+    <div class="answer-card p-3
+      {% if ans.is_correct %}correct
+      {% elif not ans.selected_option %}skipped
+      {% else %}wrong{% endif %}">
+
+      <!-- Question -->
+      <div class="d-flex align-items-start gap-2 mb-2">
+        <span class="badge
+          {% if ans.is_correct %}bg-success
+          {% elif not ans.selected_option %}bg-warning text-dark
+          {% else %}bg-danger{% endif %} mt-1">
+          Q{{ loop.index }}
+        </span>
+        <p class="mb-0 fw-semibold">{{ q.question_text }}</p>
+      </div>
+
+      <!-- Options -->
+      <div class="ms-4">
+        {% for letter, text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+          <div class="opt-row
+            {% if letter == cor %}opt-correct
+            {% elif letter == sel and not ans.is_correct %}opt-wrong
+            {% else %}opt-neutral{% endif %}">
+            <i class="fas
+              {% if letter == cor %}fa-check-circle text-success
+              {% elif letter == sel and not ans.is_correct %}fa-times-circle text-danger
+              {% else %}fa-circle text-muted fa-xs{% endif %} me-2"></i>
+            <strong>{{ letter }}.</strong> {{ text }}
+            {% if letter == cor %}<span class="ms-2 badge bg-success">Correct</span>{% endif %}
+            {% if letter == sel and not ans.is_correct %}<span class="ms-2 badge bg-danger">Your Answer</span>{% endif %}
+            {% if letter == sel and ans.is_correct %}<span class="ms-2 badge bg-success">Your Answer ✓</span>{% endif %}
+          </div>
+        {% endfor %}
+
+        {% if not ans.selected_option %}
+          <div class="opt-row" style="background:#fff3cd; color:#856404;">
+            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+            <em>Not attempted — correct answer: <strong>{{ cor }}</strong></em>
+          </div>
+        {% endif %}
+
+        {% if q.explanation %}
+          <div class="explanation-box mt-2">
+            <i class="fas fa-lightbulb me-1"></i>
+            <strong>Explanation:</strong> {{ q.explanation }}
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  {% endif %}
+{% endfor %}
+
+<!-- Bottom actions -->
+<div class="d-flex gap-2 flex-wrap mt-4 mb-2">
+  <a href="{{ url_for('student.download_pdf', result_id=result.id) }}"
+     class="btn btn-danger">
+    <i class="fas fa-file-pdf me-2"></i>Download PDF Scorecard
+  </a>
+  <a href="{{ url_for('student.leaderboard') }}" class="btn btn-outline-info">
+    <i class="fas fa-trophy me-2"></i>Leaderboard
+  </a>
+  <a href="{{ url_for('student.home') }}" class="btn btn-outline-primary">
+    <i class="fas fa-home me-2"></i>Back to Home
+  </a>
+</div>
+
+{% endblock %}

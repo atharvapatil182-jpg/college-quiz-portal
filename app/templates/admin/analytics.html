@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}Analytics | Admin{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>
+            Branch-wise Analytics
+        </h2>
+        <p class="text-muted mb-0">
+            Performance overview across all branches
+        </p>
+    </div>
+    <a href="{{ url_for('admin.view_results') }}"
+       class="btn btn-outline-primary">
+        <i class="fas fa-list me-2"></i>View All Results
+    </a>
+</div>
+
+
+<!-- ===== SUMMARY STATS ===== -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-code-branch fa-2x text-primary mb-2"></i>
+                <h2 class="fw-bold">{{ analytics_data|length }}</h2>
+                <p class="text-muted mb-0">Total Branches</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-pen-alt fa-2x text-success mb-2"></i>
+                <h2 class="fw-bold">
+                    {{ analytics_data|sum(attribute='total') }}
+                </h2>
+                <p class="text-muted mb-0">Total Attempts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                <h2 class="fw-bold">
+                    {% set active = analytics_data|selectattr('total', 'gt', 0)|list %}
+                    {% if active %}
+                        {{ (active|sum(attribute='avg_score') / active|length)|round(1) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h2>
+                <p class="text-muted mb-0">Overall Average</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-trophy fa-2x text-danger mb-2"></i>
+                <h2 class="fw-bold">
+                    {% if analytics_data %}
+                        {{ analytics_data|max(attribute='highest')|attr('highest') }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h2>
+                <p class="text-muted mb-0">Highest Score</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== BRANCH CARDS ===== -->
+<div class="row mb-4">
+    {% for data in analytics_data %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+
+            <!-- Card Header -->
+            <div class="card-header py-3"
+                 style="background: linear-gradient(135deg, #0f3460, #16213e);">
+                <h6 class="mb-0 fw-bold text-white">
+                    <i class="fas fa-code-branch me-2"></i>
+                    {{ data.branch }}
+                </h6>
+            </div>
+
+            <div class="card-body">
+                <!-- Stats Row -->
+                <div class="row text-center g-2 mb-3">
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <div class="fw-bold fs-4 text-primary">
+                                {{ data.total }}
+                            </div>
+                            <small class="text-muted">Attempts</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <div class="fw-bold fs-4 text-success">
+                                {{ data.avg_score }}%
+                            </div>
+                            <small class="text-muted">Average</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <div class="fw-bold fs-4 text-warning">
+                                {{ data.highest }}%
+                            </div>
+                            <small class="text-muted">Highest</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Bar -->
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Average Performance</small>
+                        <small class="fw-bold">{{ data.avg_score }}%</small>
+                    </div>
+                    <div class="progress" style="height:12px; border-radius:6px;">
+                        <div class="progress-bar
+                            {% if data.avg_score >= 75 %}bg-success
+                            {% elif data.avg_score >= 50 %}bg-info
+                            {% elif data.avg_score >= 35 %}bg-warning
+                            {% elif data.total == 0 %}bg-secondary
+                            {% else %}bg-danger{% endif %}"
+                            style="width:{{ data.avg_score }}%">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Badge -->
+                <div class="mt-3 text-center">
+                    {% if data.total == 0 %}
+                        <span class="badge bg-secondary px-3 py-2">
+                            <i class="fas fa-minus me-1"></i>No Data Yet
+                        </span>
+                    {% elif data.avg_score >= 75 %}
+                        <span class="badge bg-success px-3 py-2">
+                            <i class="fas fa-star me-1"></i>Excellent
+                        </span>
+                    {% elif data.avg_score >= 50 %}
+                        <span class="badge bg-info px-3 py-2">
+                            <i class="fas fa-thumbs-up me-1"></i>Good
+                        </span>
+                    {% elif data.avg_score >= 35 %}
+                        <span class="badge bg-warning text-dark px-3 py-2">
+                            <i class="fas fa-minus me-1"></i>Average
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger px-3 py-2">
+                            <i class="fas fa-exclamation me-1"></i>Needs Improvement
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<!-- ===== SUMMARY TABLE ===== -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0">
+            <i class="fas fa-table me-2 text-primary"></i>
+            Branch Summary Table
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Branch Name</th>
+                        <th>Total Attempts</th>
+                        <th>Average Score</th>
+                        <th>Highest Score</th>
+                        <th>Performance</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in analytics_data %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td class="fw-semibold">{{ data.branch }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ data.total }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-success">
+                            {{ data.avg_score }}%
+                        </td>
+                        <td class="fw-bold text-warning">
+                            {{ data.highest }}%
+                        </td>
+                        <td>
+                            {% if data.total == 0 %}
+                                <span class="badge bg-secondary">No Data</span>
+                            {% elif data.avg_score >= 75 %}
+                                <span class="badge bg-success">Excellent</span>
+                            {% elif data.avg_score >= 50 %}
+                                <span class="badge bg-info">Good</span>
+                            {% elif data.avg_score >= 35 %}
+                                <span class="badge bg-warning text-dark">Average</span>
+                            {% else %}
+                                <span class="badge bg-danger">Poor</span>
+                            {% endif %}
+                        </td>
+                        <td style="min-width:150px;">
+                            <div class="progress" style="height:10px;">
+                                <div class="progress-bar
+                                    {% if data.avg_score >= 75 %}bg-success
+                                    {% elif data.avg_score >= 50 %}bg-info
+                                    {% elif data.avg_score >= 35 %}bg-warning
+                                    {% elif data.total == 0 %}bg-secondary
+                                    {% else %}bg-danger{% endif %}"
+                                    style="width:{{ data.avg_score }}%">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

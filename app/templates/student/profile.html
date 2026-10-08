@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block title %}My Profile | Quiz Portal{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div style="background: linear-gradient(135deg, #29b6f6, #0288d1);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 32px rgba(41,182,246,0.3);
+                    padding: 35px;">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <div style="width:90px; height:90px;
+                            background:rgba(255,255,255,0.25);
+                            border-radius:50%;
+                            display:flex; align-items:center;
+                            justify-content:center;
+                            font-size:2.2rem; font-weight:800;
+                            color:#ffffff !important; flex-shrink:0;
+                            border:3px solid rgba(255,255,255,0.4);">
+                    {{ current_user.full_name[0].upper() }}
+                </div>
+                <div>
+                    <h3 style="color:#ffffff !important; font-weight:700;
+                               margin-bottom:5px;">
+                        {{ current_user.full_name }}
+                    </h3>
+                    <p style="color:#ffffff !important; opacity:0.9; margin-bottom:3px;">
+                        <i class="fas fa-envelope me-2"></i>{{ current_user.email }}
+                    </p>
+                    <p style="color:#ffffff !important; opacity:0.9; margin-bottom:0;">
+                        <i class="fas fa-code-branch me-2"></i>
+                        {{ current_user.branch.name if current_user.branch else 'No Branch' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center p-3">
+            <i class="fas fa-pen-alt fa-2x mb-2" style="color:#29b6f6;"></i>
+            <h3 class="fw-bold mb-0" style="color:#0d47a1;">{{ total_attempts }}</h3>
+            <small class="text-muted">Quizzes Taken</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center p-3">
+            <i class="fas fa-chart-line fa-2x mb-2" style="color:#00c851;"></i>
+            <h3 class="fw-bold mb-0" style="color:#0d47a1;">{{ avg_score }}%</h3>
+            <small class="text-muted">Average Score</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center p-3">
+            <i class="fas fa-star fa-2x mb-2" style="color:#ffd700;"></i>
+            <h3 class="fw-bold mb-0" style="color:#0d47a1;">{{ best_score }}%</h3>
+            <small class="text-muted">Best Score</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center p-3">
+            <i class="fas fa-trophy fa-2x mb-2" style="color:#ff9800;"></i>
+            <h3 class="fw-bold mb-0" style="color:#0d47a1;">
+                {% if rank %}#{{ rank }}{% else %}--{% endif %}
+            </h3>
+            <small class="text-muted">
+                Rank {% if total_students %}of {{ total_students }}{% endif %}
+            </small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-user-edit me-2" style="color:#0288d1;"></i>
+                    Edit Profile
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('student.profile') }}">
+                    <input type="hidden" name="action" value="update_info">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <input type="text" name="full_name" class="form-control"
+                               value="{{ current_user.full_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email Address</label>
+                        <input type="email" class="form-control"
+                               value="{{ current_user.email }}" disabled
+                               style="background:rgba(0,0,0,0.03) !important;">
+                        <small class="text-muted">Email cannot be changed</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Branch</label>
+                        <input type="text" class="form-control"
+                               value="{{ current_user.branch.name if current_user.branch else 'N/A' }}"
+                               disabled style="background:rgba(0,0,0,0.03) !important;">
+                        <small class="text-muted">Contact admin to change branch</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-lock me-2" style="color:#0288d1;"></i>
+                    Change Password
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('student.profile') }}">
+                    <input type="hidden" name="action" value="change_password">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Password</label>
+                        <input type="password" name="current_password"
+                               class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">New Password</label>
+                        <input type="password" name="new_password"
+                               class="form-control" placeholder="Min 6 characters" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm New Password</label>
+                        <input type="password" name="confirm_password"
+                               class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+    <div class="card-header py-3">
+        <h5 class="fw-bold mb-0">
+            <i class="fas fa-history me-2" style="color:#0288d1;"></i>
+            Quiz History
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if results %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr style="background:rgba(41,182,246,0.15);">
+                        <th style="padding:15px; color:#0288d1 !important;">Quiz</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Score</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Percentage</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Status</th>
+                        <th style="padding:15px; color:#0288d1 !important;">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td style="padding:15px; color:#0d47a1 !important;">
+                            {{ result.quiz.title }}
+                        </td>
+                        <td style="padding:15px; font-weight:700; color:#0d47a1 !important;">
+                            {{ result.score }}/{{ result.total_marks }}
+                        </td>
+                        <td style="padding:15px; min-width:130px;">
+                            <div class="progress" style="height:18px;">
+                                <div class="progress-bar
+                                    {% if result.percentage >= 75 %}bg-success
+                                    {% elif result.percentage >= 50 %}bg-info
+                                    {% elif result.percentage >= 35 %}bg-warning
+                                    {% else %}bg-danger{% endif %}"
+                                    style="width:{{result.percentage}}%;">
+                                    {{ result.percentage|round(1) }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding:15px;">
+                            {% if result.percentage >= 35 %}
+                                <span class="badge bg-success">Pass</span>
+                            {% else %}
+                                <span class="badge bg-danger">Fail</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:15px; color:#5c9bd6 !important; font-size:0.85rem;">
+                            {{ result.submitted_at.strftime('%d %b %Y') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-clipboard fa-3x mb-3" style="color:#b3e5fc;"></i>
+            <h5 style="color:#5c9bd6 !important;">No Quiz History Yet</h5>
+            <a href="{{ url_for('student.home') }}" class="btn btn-primary mt-2">
+                <i class="fas fa-play me-2"></i>Take a Quiz
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
